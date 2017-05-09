@@ -1,0 +1,33 @@
+language: go
+go:
+- 1.7.1
+env:
+  global:
+  - USER="Tzaoh"
+  - LUSER="tzaoh"
+  - EMAIL="tzaoh@users.noreply.github.com"
+  - REPO="tzaoh.github.io"
+  - FILES="public/*"
+  - GH_REPO="github.com/${USER}/${REPO}.git"
+before_script:
+- git clone --branch v2 https://github.com/go-yaml/yaml $GOPATH/src/gopkg.in/yaml.v2
+- go get -u -v github.com/spf13/hugo
+script:
+- mkdir public/
+- hugo --theme=mainroad
+after_success:
+- MESSAGE=$(git log --format=%B -n 1 $TRAVIS_COMMIT)
+- eval `ssh-agent -s`
+- ssh-add travis_key
+- git clone git://${GH_REPO}
+- mv -f ${FILES} ${REPO}
+- cd ${REPO}
+- git config user.email ${EMAIL}
+- git config user.name ${USER}
+- git add -A
+- git commit -m "Commiting new posts..."
+- git push git@github.com:Tzaoh/tzaoh.github.io.git master
+before_install:
+- openssl aes-256-cbc -K $encrypted_e9474a4dbdb7_key -iv $encrypted_e9474a4dbdb7_iv
+  -in travis_key.enc -out travis_key -d
+- chmod 600 travis_key
